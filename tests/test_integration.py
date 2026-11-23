@@ -44,7 +44,15 @@ class InitIntegrationTest(unittest.TestCase):
             root = Path(tmp) / "vault"
             self.assertEqual(
                 cli.cmd_init(
-                    [str(root), "--agents", "codex,claude", "--state-dir", ".state"]
+                    [
+                        str(root),
+                        "--agents",
+                        "codex,claude",
+                        "--state-dir",
+                        ".state",
+                        "--mode",
+                        "none",
+                    ]
                 ),
                 0,
             )

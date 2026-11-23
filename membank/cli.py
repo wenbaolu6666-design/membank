@@ -97,8 +97,11 @@ def _init_local_git(target):
     )
     output = (commit.stderr or "") + (commit.stdout or "")
     if commit.returncode != 0 and "nothing to commit" not in output:
-        print(t("init.git_failed", error=output.strip()))
-        return 0
+        if "Please tell me who you are" in output or "unable to auto-detect email" in output:
+            print(t("init.git_identity_missing"))
+        else:
+            print(t("init.git_failed", error=output.strip()))
+        return 1
     print(t("init.git_done"))
     return 0
 
