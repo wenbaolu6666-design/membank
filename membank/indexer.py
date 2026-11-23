@@ -12,6 +12,7 @@ from datetime import date, datetime, timezone
 from pathlib import PurePosixPath
 
 from .config import load_config
+from .gitenv import clean_env
 from .i18n import t
 
 try:
@@ -48,6 +49,7 @@ def git(*args):
         ["git", "-C", BANK, *args],
         capture_output=True,
         check=False,
+        env=clean_env(),
     )
 
 

@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 
 from .config import DEFAULT_STATE_DIR, load_config
+from .gitenv import clean_env
 from .i18n import detect_lang, set_lang, t
 from .templates import AGENTS_MD, PROFILE_MD
 
@@ -46,8 +47,47 @@ def git_head(vault):
         stdout=subprocess.PIPE,
         stderr=subprocess.DEVNULL,
         check=False,
+        env=clean_env(),
     )
     return result.stdout.decode("ascii", "replace").strip() if result.returncode == 0 else ""
+
+
+def git_remote(vault):
+    result = subprocess.run(
+        ["git", "-C", str(vault), "remote", "get-url", "origin"],
+        capture_output=True,
+        text=True,
+        check=False,
+        env=clean_env(),
+    )
+    return result.stdout.strip() if result.returncode == 0 else ""
+
+
+def _init_local_git(target):
+    env = clean_env()
+    probe = subprocess.run(["git", "--version"], capture_output=True, check=False, env=env)
+    if probe.returncode != 0:
+        print(t("init.git_missing"))
+        return 1
+    subprocess.run(
+        ["git", "-C", str(target), "init"], capture_output=True, check=False, env=env
+    )
+    subprocess.run(
+        ["git", "-C", str(target), "add", "-A"], capture_output=True, check=False, env=env
+    )
+    commit = subprocess.run(
+        ["git", "-C", str(target), "commit", "-m", "init memory bank"],
+        capture_output=True,
+        text=True,
+        check=False,
+        env=env,
+    )
+    output = (commit.stderr or "") + (commit.stdout or "")
+    if commit.returncode != 0 and "nothing to commit" not in output:
+        print(t("init.git_failed", error=output.strip()))
+        return 1
+    print(t("init.git_done"))
+    return 0
 
 
 def cmd_index(argv):
@@ -75,6 +115,8 @@ def cmd_status(argv):
     print(f"{t('status.index'):<6}: {config.db}")
     print(f"{t('status.model'):<6}: {config.model}")
     print(f"{t('status.agents'):<6}: {', '.join(config.agents)}")
+    remote = git_remote(config.vault)
+    print(f"{t('status.remote'):<6}: {remote or t('status.no_remote')}")
     if not config.db.exists():
         print(f"{t('status.index'):<6}: {t('status.missing')}")
         return 1
@@ -134,6 +176,7 @@ def cmd_init(argv):
     parser.add_argument("target")
     parser.add_argument("--agents", default=None)
     parser.add_argument("--state-dir", default=DEFAULT_STATE_DIR)
+    parser.add_argument("--git", action="store_true", help="initialize a local Git repo (no remote)")
     args = parser.parse_args(argv)
     target = Path(args.target).expanduser().resolve()
     target.mkdir(parents=True, exist_ok=True)
@@ -178,7 +221,12 @@ def cmd_init(argv):
         else t("init.agents", agents=t("init.no_agents"))
     )
     print(t("init.state", path=state_path))
-    print(t("init.next"))
+    if args.git:
+        if _init_local_git(target) != 0:
+            return 1
+        print(t("init.next_git"))
+    else:
+        print(t("init.next"))
     return 0
 
 

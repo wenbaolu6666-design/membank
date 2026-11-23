@@ -6,9 +6,11 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from membank import check, cli, curate, grants, mcp, notes, supersede
 from membank import config as cfg
+from membank.gitenv import clean_env
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -54,6 +56,35 @@ class InitIntegrationTest(unittest.TestCase):
             self.assertIn('state_dir = ".state"', config_text)
             gitignore = (root / ".gitignore").read_text(encoding="utf-8")
             self.assertIn(".state/", gitignore)
+
+    def test_init_local_git_has_no_remote(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "vault"
+            env = {
+                "GIT_AUTHOR_NAME": "t",
+                "GIT_AUTHOR_EMAIL": "t@example.com",
+                "GIT_COMMITTER_NAME": "t",
+                "GIT_COMMITTER_EMAIL": "t@example.com",
+            }
+            with patch.dict(os.environ, env):
+                self.assertEqual(cli.cmd_init([str(root), "--agents", "codex", "--git"]), 0)
+            self.assertTrue((root / ".git").is_dir())
+            log = subprocess.run(
+                ["git", "-C", str(root), "log", "--oneline"],
+                capture_output=True,
+                text=True,
+                check=False,
+                env=clean_env(),
+            )
+            self.assertIn("init memory bank", log.stdout)
+            remote = subprocess.run(
+                ["git", "-C", str(root), "remote"],
+                capture_output=True,
+                text=True,
+                check=False,
+                env=clean_env(),
+            )
+            self.assertEqual(remote.stdout.strip(), "")
 
 
 class CurateFlowTest(unittest.TestCase):

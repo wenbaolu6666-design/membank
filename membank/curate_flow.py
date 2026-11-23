@@ -11,6 +11,7 @@ from datetime import datetime
 from urllib.parse import urlsplit
 
 from . import curate, signals
+from .gitenv import clean_env
 from .i18n import t
 
 OUTPUT_SCHEMA = {
@@ -56,6 +57,7 @@ def _head(config):
         capture_output=True,
         text=True,
         check=False,
+        env=clean_env(),
     )
     return result.stdout.strip() if result.returncode == 0 else ""
 

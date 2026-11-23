@@ -185,6 +185,8 @@ memory-bank  （私有）笔记数据 + membank 作为 submodule
 - 只导入白名单文件；`notes/`、`projects/`、`profile.md`、对话存档、`.obsidian/`、索引文件一律不进公开仓库。
 - 公开仓库目录：`membank/`、`schema/`、`templates/vault/`、`examples/`、`docs/`、`tests/`、`pyproject.toml`、`README.md`、`LICENSE`、`.gitignore`。
 - 白名单导出：`python scripts/export_public.py --out <目标目录>`，导出前会扫描本机路径、账号与密钥模式，命中即终止。
+- 双仓隔离：私有记忆仓与公开引擎仓必须是不同目录、不同 remote、无共同 commit；公开树不得出现 `notes/`、`projects/`、`profile.md`、`.obsidian/`、`.membank/`。
+- 隔离校验：`python scripts/check_isolation.py --public <公开仓路径>`，任一失败即退出非零。
 - 许可证默认 MIT；需要专利条款改 Apache-2.0。
 - 清理所有本机绝对路径、私人仓库名、账号字串后，再做一次密钥扫描。
 

@@ -27,6 +27,7 @@ SQLite 检索副本存于 `.membank/index.sqlite`，被 Git 忽略，可随时�
 
 ```bash
 python -m membank init ~/memory-bank --agents codex,claude
+python -m membank init ~/memory-bank --git
 python -m membank index
 python -m membank search "关键词" --agent codex --path ~/memory-bank
 python -m membank status

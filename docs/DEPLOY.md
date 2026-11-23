@@ -43,6 +43,18 @@ python -m membank index
 `notes/<名称>/` 目录推断。生成 `notes/`、`projects/`、`.membank/`、`AGENTS.md`、
 `profile.md`、`.gitignore`，不覆盖已存在文件。
 
+### 仅本地 Git（不上云）
+
+不配置任何远程也能完整使用，历史和检索都只依赖本地仓库：
+
+```bash
+python -m membank init ~/memory-bank --git
+```
+
+`--git` 会执行 `git init` 并创建首个本地提交，不会添加 remote。之后照常 `git commit`
+和 `membank index`。注意：本地 Git 只提供版本历史，不提供异地备份；磁盘损坏会同时丢失
+库和 `.git`，需要备份时用 `git bundle create memory-bank.bundle --all` 复制到其他介质。
+
 ## 配置
 
 可选 `memory-bank.toml`，放在记忆库根目录：

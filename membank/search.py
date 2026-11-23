@@ -9,6 +9,7 @@ import sys
 from datetime import date
 
 from .config import load_config
+from .gitenv import clean_env
 from .i18n import t
 
 CONFIG = load_config()
@@ -212,6 +213,7 @@ def main(argv=None):
         stdout=subprocess.PIPE,
         stderr=subprocess.DEVNULL,
         check=False,
+        env=clean_env(),
     ).stdout.decode("ascii", "replace").strip()
     chain = " -> ".join(layer["slug"] for layer in layer_chain) or "(global only)"
     print(
