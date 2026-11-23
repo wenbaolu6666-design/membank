@@ -86,6 +86,49 @@ class InitIntegrationTest(unittest.TestCase):
             )
             self.assertEqual(remote.stdout.strip(), "")
 
+    def test_init_no_git(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "vault"
+            self.assertEqual(
+                cli.cmd_init([str(root), "--agents", "codex", "--mode", "none"]), 0
+            )
+            self.assertFalse((root / ".git").exists())
+            config_text = (root / "memory-bank.toml").read_text(encoding="utf-8")
+            self.assertIn('mode = "none"', config_text)
+
+    def test_init_cloud_sets_remote(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "vault"
+            env = {
+                "GIT_AUTHOR_NAME": "t",
+                "GIT_AUTHOR_EMAIL": "t@example.com",
+                "GIT_COMMITTER_NAME": "t",
+                "GIT_COMMITTER_EMAIL": "t@example.com",
+            }
+            with patch.dict(os.environ, env):
+                self.assertEqual(
+                    cli.cmd_init(
+                        [
+                            str(root),
+                            "--agents",
+                            "codex",
+                            "--mode",
+                            "cloud",
+                            "--remote",
+                            "https://example.com/repo.git",
+                        ]
+                    ),
+                    0,
+                )
+            remote = subprocess.run(
+                ["git", "-C", str(root), "remote", "get-url", "origin"],
+                capture_output=True,
+                text=True,
+                check=False,
+                env=clean_env(),
+            )
+            self.assertEqual(remote.stdout.strip(), "https://example.com/repo.git")
+
 
 class CurateFlowTest(unittest.TestCase):
     def test_prepare_and_submit(self):

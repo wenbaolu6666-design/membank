@@ -8,7 +8,7 @@ CATALOG = {
         "usage": """membank <command>
 
   init <dir> [--agents a,b] [--state-dir .membank]  初始化记忆库
-  index                       从 Git HEAD 同步索引
+  index                       按 Git 模式同步索引
   search "查询" [选项]        检索记忆
   status                      查看库根、状态目录与索引
   doctor                      检查依赖与环境
@@ -34,6 +34,10 @@ CATALOG = {
         "status.agents": "智能体",
         "status.remote": "远程",
         "status.no_remote": "无（仅本地）",
+        "status.vcs": "版本控制",
+        "status.vcs_none": "无 Git",
+        "status.vcs_local": "本地 Git",
+        "status.vcs_remote": "Git + 远程 {remote}",
         "status.missing": "索引不存在，先运行 membank index",
         "status.bad": "索引格式无法识别，重建后再试",
         "status.stats": "{count} 条笔记 / {chunks} 分块 / schema {schema}",
@@ -52,6 +56,9 @@ CATALOG = {
         "init.git_failed": "本地 Git 已初始化，但提交失败：{error}",
         "init.git_missing": "未找到 git 命令",
         "init.next_git": "下一步：写入第一条笔记 → git commit → membank index",
+        "init.git_remote": "已配置远程：{remote}",
+        "init.git_push_failed": "远程已配置，但推送失败：{error}",
+        "init.cloud_remote_required": "cloud 模式需要 --remote <仓库地址>",
         "grant.usage": "用法：membank grant <目标智能体> [--to 读者] [--minutes N]",
         "grant.need_reader": "请用 --to 指定读者，或先配置 [mcp] agent",
         "grant.done": "已授权：{reader} 可读 {target}，{minutes} 分钟内有效",
@@ -115,9 +122,10 @@ CATALOG = {
         "index.fail": "索引同步失败：{error}",
         "index.missing_deps": "缺少依赖：{error}",
         "index.no_notes": "没有找到已提交的 Markdown 笔记",
-        "index.sync": "同步完成：{docs} 条已提交笔记，{chunks} 个分块；新增/更新向量 {new}，复用 {reused}，路径层 {layers}，模型 {model}",
+        "index.sync": "同步完成：{docs} 条笔记，{chunks} 个分块；新增/更新向量 {new}，复用 {reused}，路径层 {layers}，模型 {model}",
         "index.hint": "提示：结构检查发现 {errors} 个错误，运行 membank check 查看",
         "index.json_warn": "SQLite 已同步；兼容用 JSON 快照未更新：{error}",
+        "index.no_git": "Git 未启用或不可用，改为读取工作区",
         "config.no_vault": "找不到记忆库根目录；用 MEMBANK_VAULT 指定，或先运行 membank init <目录>",
         "signal.duplicate": "建议：核对后合并或标注取代关系",
         "signal.conflict": "建议：核对结论，保留一条并标 superseded",
@@ -159,7 +167,7 @@ CATALOG = {
         "usage": """membank <command>
 
   init <dir> [--agents a,b] [--state-dir .membank]  create a vault
-  index                       sync index from Git HEAD
+  index                       sync index by Git mode
   search "query" [options]    hybrid search
   status                      show vault, state dir and index
   doctor                      check dependencies and environment
@@ -187,6 +195,10 @@ CATALOG = {
         "status.agents": "agents",
         "status.remote": "remote",
         "status.no_remote": "none (local only)",
+        "status.vcs": "vcs",
+        "status.vcs_none": "no Git",
+        "status.vcs_local": "local Git",
+        "status.vcs_remote": "Git + remote {remote}",
         "status.missing": "index missing; run membank index",
         "status.bad": "unrecognized index format; rebuild it",
         "status.stats": "{count} notes / {chunks} chunks / schema {schema}",
@@ -205,6 +217,9 @@ CATALOG = {
         "init.git_failed": "local Git initialized, but commit failed: {error}",
         "init.git_missing": "git command not found",
         "init.next_git": "next: write a note -> git commit -> membank index",
+        "init.git_remote": "remote configured: {remote}",
+        "init.git_push_failed": "remote configured, but push failed: {error}",
+        "init.cloud_remote_required": "cloud mode requires --remote <repo url>",
         "grant.usage": "usage: membank grant <target> [--to reader] [--minutes N]",
         "grant.need_reader": "pass --to or configure [mcp] agent",
         "grant.done": "granted: {reader} can read {target} for {minutes} minutes",
@@ -268,9 +283,10 @@ CATALOG = {
         "index.fail": "index sync failed: {error}",
         "index.missing_deps": "missing dependency: {error}",
         "index.no_notes": "no committed Markdown notes found",
-        "index.sync": "sync complete: {docs} committed notes, {chunks} chunks; embedded {new}, reused {reused}, layers {layers}, model {model}",
+        "index.sync": "sync complete: {docs} notes, {chunks} chunks; embedded {new}, reused {reused}, layers {layers}, model {model}",
         "index.hint": "hint: structure check found {errors} error(s); run membank check",
         "index.json_warn": "SQLite synced; legacy JSON snapshot not updated: {error}",
+        "index.no_git": "Git disabled or unavailable; reading the working tree instead",
         "config.no_vault": "vault not found; set MEMBANK_VAULT or run membank init <dir>",
         "signal.duplicate": "suggest: merge or mark superseded",
         "signal.conflict": "suggest: verify and keep one, mark the other superseded",

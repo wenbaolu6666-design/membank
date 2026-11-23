@@ -30,11 +30,10 @@ pip install .
 ## 初始化
 
 ```bash
-python -m membank init ~/memory-bank
+python -m membank init ~/memory-bank                 # 默认 local Git
+python -m membank init ~/memory-bank --mode none     # 不用 Git
+python -m membank init ~/memory-bank --mode cloud --remote <仓库地址> [--push]
 cd ~/memory-bank
-git init
-git add -A
-git commit -m "init memory bank"
 python -m membank index
 ```
 
@@ -43,17 +42,16 @@ python -m membank index
 `notes/<名称>/` 目录推断。生成 `notes/`、`projects/`、`.membank/`、`AGENTS.md`、
 `profile.md`、`.gitignore`，不覆盖已存在文件。
 
-### 仅本地 Git（不上云）
+### 版本控制模式
 
-不配置任何远程也能完整使用，历史和检索都只依赖本地仓库：
+| mode | 行为 |
+|---|---|
+| `none` | 不创建 Git；索引直接读工作区，保存后重新 `membank index` 即可检索 |
+| `local` | 只建本地 Git，无远程；索引读 HEAD，未提交笔记不可见 |
+| `cloud` | 本地 Git + remote；需 `--remote`，`--push` 首次推送 |
 
-```bash
-python -m membank init ~/memory-bank --git
-```
-
-`--git` 会执行 `git init` 并创建首个本地提交，不会添加 remote。之后照常 `git commit`
-和 `membank index`。注意：本地 Git 只提供版本历史，不提供异地备份；磁盘损坏会同时丢失
-库和 `.git`，需要备份时用 `git bundle create memory-bank.bundle --all` 复制到其他介质。
+本地模式不提供异地备份；磁盘损坏会同时丢失库和 `.git`，需要时用
+`git bundle create memory-bank.bundle --all` 复制到其他介质。
 
 ## 配置
 
@@ -67,6 +65,11 @@ model = "BAAI/bge-small-zh-v1.5"
 agents = ["codex", "claude", "cursor"]
 chunk_chars = 900
 chunk_overlap = 120
+
+[git]
+mode = "local"     # none | local | cloud
+remote = ""
+auto_push = false
 
 [i18n]
 lang = "zh"   # 或 "en"；也可用 MEMBANK_LANG 覆盖

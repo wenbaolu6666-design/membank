@@ -56,7 +56,8 @@
 - 默认范围：当前路径链自下而上 + 全局相关 + 当前智能体私有层，仅 `active` 且未过期。
 - 显式放宽：`--scope all` 或 `--agent all`。
 - 输出：得分、语义/关键词分量、分块序号、原文件路径、标题；命中冲突时追加冲突块。
-- 索引落后 HEAD 时明确警告，不静默返回旧结果。
+- 索引源：`git.mode=local/cloud` 读 Git HEAD，未提交笔记不可见；`git.mode=none` 直接读工作区。
+- `local/cloud` 下索引落后 HEAD 时明确警告；`none` 无 HEAD 概念，不产生该警告。
 
 ## 6. 冲突信号
 
@@ -160,6 +161,11 @@ grant_minutes = 30
 
 [mcp]
 agent = "codex"
+
+[git]
+mode = "local"
+remote = ""
+auto_push = false
 
 [ai]
 backend = "agent"

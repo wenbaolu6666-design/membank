@@ -29,7 +29,7 @@ _configure_stdio()
 USAGE = """membank <command>
 
   init <dir> [--agents a,b]   初始化一个记忆库
-  index                       从 Git HEAD 同步检索索引
+  index                       按 Git 模式同步检索索引
   search "查询" [选项]        检索记忆（--agent / --scope / --path）
   status                      查看索引与提交状态
   doctor                      检查依赖与环境
@@ -128,8 +128,14 @@ def cmd_status(argv):
     print(f"{t('status.index'):<6}: {config.db}")
     print(f"{t('status.model'):<6}: {config.model}")
     print(f"{t('status.agents'):<6}: {', '.join(config.agents)}")
-    remote = git_remote(config.vault)
-    print(f"{t('status.remote'):<6}: {remote or t('status.no_remote')}")
+    remote = git_remote(config.vault) or config.git_remote
+    if config.git_mode == "none":
+        vcs = t("status.vcs_none")
+    elif config.git_mode == "cloud":
+        vcs = t("status.vcs_remote", remote=remote or t("status.no_remote"))
+    else:
+        vcs = t("status.vcs_local")
+    print(f"{t('status.vcs'):<6}: {vcs}")
     if not config.db.exists():
         print(f"{t('status.index'):<6}: {t('status.missing')}")
         return 1
@@ -166,8 +172,10 @@ def cmd_doctor(argv):
         ("vault", config.vault.is_dir(), str(config.vault)),
         (
             "git",
-            bool(git_head(config.vault)),
-            t("doctor.head_ok") if git_head(config.vault) else t("doctor.head_bad"),
+            (not config.git_enabled) or bool(git_head(config.vault)),
+            t("status.vcs_none")
+            if not config.git_enabled
+            else (t("doctor.head_ok") if git_head(config.vault) else t("doctor.head_bad")),
         ),
     ]
     for module in ("yaml", "sklearn", "fastembed"):
@@ -189,8 +197,17 @@ def cmd_init(argv):
     parser.add_argument("target")
     parser.add_argument("--agents", default=None)
     parser.add_argument("--state-dir", default=DEFAULT_STATE_DIR)
-    parser.add_argument("--git", action="store_true", help="initialize a local Git repo (no remote)")
+    parser.add_argument("--mode", choices=("none", "local", "cloud"), default="local")
+    parser.add_argument("--remote", default="")
+    parser.add_argument("--push", action="store_true")
+    parser.add_argument("--git", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
+    mode = "local" if args.git else args.mode
+    if args.remote and mode == "local":
+        mode = "cloud"
+    if mode == "cloud" and not args.remote:
+        print(t("init.cloud_remote_required"))
+        return 2
     target = Path(args.target).expanduser().resolve()
     target.mkdir(parents=True, exist_ok=True)
     for name in ("notes", "projects"):
@@ -226,6 +243,11 @@ def cmd_init(argv):
         if names:
             lines.append(f"agents = {json.dumps(names, ensure_ascii=False)}")
         lines.append(f'state_dir = "{state_value}"')
+        lines.append("")
+        lines.append("[git]")
+        lines.append(f'mode = "{mode}"')
+        lines.append(f'remote = "{args.remote}"')
+        lines.append(f"auto_push = {str(args.push).lower()}")
         config_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(t("init.done", path=target))
     print(
@@ -234,11 +256,42 @@ def cmd_init(argv):
         else t("init.agents", agents=t("init.no_agents"))
     )
     print(t("init.state", path=state_path))
-    if args.git:
+    if mode != "none":
         if _init_local_git(target) != 0:
             return 1
+        if mode == "cloud" and args.remote:
+            env = clean_env()
+            subprocess.run(
+                ["git", "-C", str(target), "remote", "add", "origin", args.remote],
+                capture_output=True,
+                check=False,
+                env=env,
+            )
+            subprocess.run(
+                ["git", "-C", str(target), "remote", "set-url", "origin", args.remote],
+                capture_output=True,
+                check=False,
+                env=env,
+            )
+            print(t("init.git_remote", remote=args.remote))
+            if args.push:
+                pushed = subprocess.run(
+                    ["git", "-C", str(target), "push", "-u", "origin", "main"],
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    env=env,
+                )
+                if pushed.returncode != 0:
+                    print(
+                        t(
+                            "init.git_push_failed",
+                            error=(pushed.stderr or pushed.stdout).strip(),
+                        )
+                    )
         print(t("init.next_git"))
     else:
+        print(t("status.vcs_none"))
         print(t("init.next"))
     return 0
 

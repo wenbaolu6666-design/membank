@@ -171,6 +171,44 @@ class ConfigTest(unittest.TestCase):
             self.assertEqual(config.db.parent, expected)
             self.assertEqual(config.proposals.parent, expected)
 
+    def test_git_modes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "notes").mkdir()
+            (root / "projects").mkdir()
+            (root / "AGENTS.md").write_text("x", encoding="utf-8")
+            (root / "memory-bank.toml").write_text(
+                '[git]\nmode = "none"\n', encoding="utf-8"
+            )
+            config = cfg.load_config(vault=root)
+            self.assertFalse(config.git_enabled)
+            self.assertEqual(config.git_mode, "none")
+
+            (root / "memory-bank.toml").write_text(
+                '[git]\nmode = "cloud"\nremote = "https://example.com/x.git"\n',
+                encoding="utf-8",
+            )
+            config = cfg.load_config(vault=root)
+            self.assertTrue(config.git_enabled)
+            self.assertEqual(config.git_mode, "cloud")
+            self.assertEqual(config.git_remote, "https://example.com/x.git")
+
+
+class WorkingTreeIndexTest(unittest.TestCase):
+    def test_reads_uncommitted_notes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "notes").mkdir()
+            (root / "projects" / "demo").mkdir(parents=True)
+            (root / "docs").mkdir()
+            (root / "notes" / "a.md").write_text("a", encoding="utf-8")
+            (root / "projects" / "demo" / "b.md").write_text("b", encoding="utf-8")
+            (root / "docs" / "c.md").write_text("c", encoding="utf-8")
+            sources = indexer.read_working_sources(root)
+            self.assertIn("notes/a.md", sources)
+            self.assertIn("projects/demo/b.md", sources)
+            self.assertNotIn("docs/c.md", sources)
+
 
 class VersionTest(unittest.TestCase):
     def test_version_consistency(self):

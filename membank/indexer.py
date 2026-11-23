@@ -1,4 +1,4 @@
-"""Mirror committed Markdown notes into the local SQLite retrieval database."""
+"""Mirror Markdown notes (Git HEAD or working tree) into the local SQLite index."""
 import hashlib
 import json
 import os
@@ -93,6 +93,28 @@ def read_committed_sources():
                     continue
                 text = result.stdout.decode("utf-8", "replace")
         sources[rel] = text
+    return sources
+
+
+def read_working_sources(vault=None):
+    root = os.path.abspath(vault or BANK)
+    sources = {}
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [
+            name
+            for name in dirnames
+            if name not in SKIP_DIRS and not name.startswith(".")
+        ]
+        for name in filenames:
+            if not name.lower().endswith(".md") or name in SKIP_FILES:
+                continue
+            path = os.path.join(dirpath, name)
+            rel = os.path.relpath(path, root).replace(os.sep, "/")
+            try:
+                with open(path, encoding="utf-8", errors="replace") as stream:
+                    sources[rel] = stream.read()
+            except OSError:
+                continue
     return sources
 
 
@@ -328,8 +350,16 @@ def main():
         print(t("index.missing_deps", error=exc))
         return 1
 
-    source_head = git("rev-parse", "HEAD").stdout.decode("ascii", "replace").strip()
-    sources = read_committed_sources()
+    if CONFIG.git_enabled:
+        source_head = git("rev-parse", "HEAD").stdout.decode("ascii", "replace").strip()
+        if source_head:
+            sources = read_committed_sources()
+        else:
+            print(t("index.no_git"))
+            sources = read_working_sources()
+    else:
+        source_head = ""
+        sources = read_working_sources()
     files = read_source_files(sources)
     layers = read_project_layers(sources)
     if not files:

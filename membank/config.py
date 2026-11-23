@@ -50,6 +50,10 @@ class Config:
     ai_model: str = ""
     ai_key_env: str = "MEMBANK_AI_KEY"
     ai_allow_external: bool = False
+    git_mode: str = "local"
+    git_enabled: bool = True
+    git_remote: str = ""
+    git_auto_push: bool = False
 
 
 def find_vault(start):
@@ -116,6 +120,19 @@ def load_config(vault=None, start=None):
     mcp = data.get("mcp") or {}
     search_config = data.get("search") or {}
     ai = data.get("ai") or {}
+    git_config = data.get("git") or {}
+    env_git = os.environ.get("MEMBANK_GIT")
+    mode = str(git_config.get("mode") or "").strip().lower()
+    remote = str(os.environ.get("MEMBANK_GIT_REMOTE") or git_config.get("remote") or "")
+    if not mode:
+        enabled = bool(git_config.get("enabled", True))
+        mode = "cloud" if remote else ("local" if enabled else "none")
+    if env_git:
+        value = env_git.strip().lower()
+        mode = {"0": "none", "false": "none", "no": "none", "off": "none"}.get(value, value)
+    if mode not in {"none", "local", "cloud"}:
+        mode = "local"
+    git_enabled = mode != "none"
     return Config(
         vault=root,
         state_dir=state_dir,
@@ -145,4 +162,8 @@ def load_config(vault=None, start=None):
         ai_model=str(ai.get("model") or ""),
         ai_key_env=str(ai.get("api_key_env") or "MEMBANK_AI_KEY"),
         ai_allow_external=bool(ai.get("allow_external", False)),
+        git_mode=mode,
+        git_enabled=git_enabled,
+        git_remote=remote,
+        git_auto_push=bool(git_config.get("auto_push", False)),
     )
