@@ -1,49 +1,70 @@
-# memory-bank
+# membank
 
-Markdown/Obsidian 总库是权威源：**一处集中存放**——全局 / 按本地路径分层的项目 / 子文件夹记忆全部收在同一个总库下，绝不在被记录项目自身的目录里落记忆文件；每一级内再分**共享层与智能体私有层**（各智能体默认隔离，相同事实经 mirrors 双向连接）。Git 保存 Markdown；本机 SQLite 只保存 Git HEAD 的检索副本，可从 Markdown 重建。
+本地优先、分层隔离、可版本化的 AI 长期记忆库。Markdown + Git 是权威源，SQLite 只是可重建的检索副本；Codex、Claude Code、Cursor、Antigravity、ZCode 等智能体通过 CLI 或 MCP 共用同一份记忆。
 
-为多个 AI 编码智能体（Codex、Claude Code、Cursor、Antigravity 等）与人的协同工作流设计。
+## 核心特性
 
-## 核心设计
+- **按路径分层**：全局 / 项目 / 子文件夹三级，目录即归属
+- **多智能体隔离**：每级都有共享层与私有层，默认只读共享 + 自己
+- **Git 版本化**：`local` 仅本地，`cloud` 加远程；不提供无 Git 模式
+- **混合检索**：字符 n-gram 关键词 + 向量语义
+- **冲突信号**：重复、矛盾、过期、悬挂取代、单向镜像
+- **写入可控**：默认提案制，用户确认后才落库；明确说"记住"才直写本层
+- **MCP 接口**：10 个工具，支持采样回请当前会话模型
+- **zh / en**：CLI 与 MCP 文案可切换
 
-1. **一处集中存放**：一切记忆只进总库，项目与子文件夹按本地路径 slug 收进 `projects/` 目录树，不在被记录项目自身目录里创建任何记忆文件；总库内各级独立子树 + 强制检索栈，跨层只经 move。
-2. **写入仲裁**：`type → scope` 默认映射表 + 策略优先，判不准就问人，不猜。
-3. **智能体分层**：每库内共享层（智能体无关，全员可见）+ 各智能体私有层（默认只写自己、只读自己）；同一事实被多个智能体记录时经 `mirrors` 双向连接，内容一致后才经提升操作合并为共享规范件（借鉴 metronix 的"workspace 共享 + agent 私有"与 mem0 的多级记忆）。
-4. **时序有效性**：记忆有生命周期（active/temporary/superseded/archived），矛盾时旧事实标失效而非删除，来源永远可追溯（借用 Zep/Graphiti 的双时态思想）。
-5. **检索控制**：默认窄（项目库 + 全局库中与本项目相关的 active 记忆 + 当前智能体的私有层），显式才能放宽；每条结果附 confidence 与 source 摘要。
-6. **整合例行**：里程碑级 consolidation——去重、矛盾裁定、镜像合并、临时记忆清理、profile 重算。
-
-完整设计（含借鉴清单与反模式）见 [docs/DESIGN.md](docs/DESIGN.md)，项目规范见 [docs/SPEC.md](docs/SPEC.md)，记忆格式见 [schema/frontmatter.schema.json](schema/frontmatter.schema.json)，示例见 [examples/](examples/)。
-
-## 设计来源
-
-2026-09-28 对 GitHub 上 14 个开源记忆项目做了实测评估（star、许可、隔离机制、Obsidian 兼容性），取其防污染设计糅合而成，并明确排除 5 个反模式。借鉴明细与出处见 DESIGN.md 第 2、3 节。
-
-## 状态
-
-SQLite 检索副本存于 `.membank/index.sqlite`，被 Git 忽略，可随时从 Markdown 重建。
-
-## 使用
+## 快速开始
 
 ```bash
-python -m membank init ~/memory-bank --agents codex,claude
-python -m membank init ~/memory-bank --git
-python -m membank index
-python -m membank search "关键词" --agent codex --path ~/memory-bank
-python -m membank status
-python -m membank doctor
-python -m membank check
-python -m membank signals
-python -m membank curate list
-python -m membank curate prepare
-python -m membank curate submit -
-python -m membank summary build
-python -m membank inject
-python -m membank mcp
+pipx install membank
+# 或：python -m membank ...
+
+membank init ~/memory-bank                 # 默认 local Git
+membank init ~/memory-bank --mode cloud --remote <仓库地址>
+
+cd ~/memory-bank
+membank index
+membank search "关键词" --agent codex
 ```
 
-MCP 接入说明见 [docs/MCP.md](docs/MCP.md)，各智能体配置见 [docs/AGENT-SETUP.md](docs/AGENT-SETUP.md)，完整部署步骤见 [docs/DEPLOY.md](docs/DEPLOY.md)。
+初始化会检测本机已安装的智能体，生成 `AGENTS.md`、`profile.md`、`memory-bank.toml`、`notes/`、`projects/`，并创建本地 Git 提交。
 
-也可 `pip install -e .` 后直接使用 `membank` 命令。
+## 架构一览
 
-规范 v2.0：Markdown + Git 权威、SQLite 派生；智能体操作入口为总库根目录 `AGENTS.md`，完整规范见 [docs/SPEC.md](docs/SPEC.md)。
+```
+Agents (Codex / Claude / Cursor / Antigravity / ZCode)
+        │  CLI                 │  MCP stdio
+        ▼                     ▼
+                 membank engine
+   config / agents / i18n        indexer / search
+   check / migrate / supersede   signals / curate
+   notes / grants / summary      mcp server
+        │
+        ▼
+  Vault：Markdown + Git HEAD
+  State：.membank/（索引、提案、任务、授权、审计）
+```
+
+## 文档
+
+- [架构与数据流](docs/ARCHITECTURE.md)
+- [CLI 命令参考](docs/CLI.md)
+- [配置参考](docs/CONFIG.md)
+- [部署与版本控制模式](docs/DEPLOY.md)
+- [MCP 接口](docs/MCP.md)
+- [各智能体接入](docs/AGENT-SETUP.md)
+- [项目规范](docs/SPEC.md)
+- [变更日志](CHANGELOG.md)
+
+## 开发
+
+```bash
+python -m pip install -e ".[dev]"
+ruff check .
+mypy membank
+python -m unittest discover -s tests -v
+```
+
+## 许可证
+
+MIT

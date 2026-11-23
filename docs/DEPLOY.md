@@ -1,5 +1,7 @@
 # 部署
 
+相关文档：[配置](CONFIG.md) · [CLI](CLI.md) · [MCP](MCP.md) · [架构](ARCHITECTURE.md)
+
 ## 前置条件
 
 - Python 3.10 及以上，推荐 3.12
@@ -40,6 +42,9 @@ python -m membank index
 把结果写进 `memory-bank.toml`；检测不到时用 `--agents` 显式指定，也可只按库内已有的
 `notes/<名称>/` 目录推断。生成 `notes/`、`projects/`、`.membank/`、`AGENTS.md`、
 `profile.md`、`.gitignore`，不覆盖已存在文件。
+
+默认写入嵌入模型 `BAAI/bge-small-zh-v1.5`；可用 `--model <名称>` 指定其他模型，
+首次 `index` 会下载并缓存。
 
 ### 版本控制模式
 

@@ -133,7 +133,11 @@ def cmd_index(argv):
     if argv:
         print(t("common.no_args", command="index"))
         return 2
-    return indexer.main()
+    try:
+        return indexer.main()
+    except Exception as exc:
+        print(t("index.fail", error=f"{type(exc).__name__}: {exc}"))
+        return 1
 
 
 def cmd_search(argv):
@@ -220,6 +224,7 @@ def cmd_init(argv):
     parser.add_argument("--mode", choices=("local", "cloud"), default="local")
     parser.add_argument("--remote", default="")
     parser.add_argument("--push", action="store_true")
+    parser.add_argument("--model", default="BAAI/bge-small-zh-v1.5")
     parser.add_argument("--git", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
     mode = "local" if args.git else args.mode
@@ -244,6 +249,8 @@ def cmd_init(argv):
         names = [item.strip() for item in args.agents.split(",") if item.strip()]
     else:
         names = agents.detect_installed() or agents.detect_vault_agents(target)
+    for name in names:
+        (target / "notes" / name).mkdir(parents=True, exist_ok=True)
 
     for name, content in (("AGENTS.md", AGENTS_MD), ("profile.md", PROFILE_MD)):
         destination = target / name
@@ -262,6 +269,7 @@ def cmd_init(argv):
         lines = []
         if names:
             lines.append(f"agents = {json.dumps(names, ensure_ascii=False)}")
+        lines.append(f'model = "{args.model}"')
         lines.append(f'state_dir = "{state_value}"')
         lines.append("")
         lines.append("[git]")
@@ -631,7 +639,11 @@ def main(argv=None):
         print(f"未知命令：{command}\n")
         print(t("usage"))
         return 2
-    return handler(rest)
+    try:
+        return handler(rest)
+    except Exception as exc:
+        print(t("cli.error", error=f"{type(exc).__name__}: {exc}"))
+        return 1
 
 
 if __name__ == "__main__":

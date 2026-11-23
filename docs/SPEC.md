@@ -1,5 +1,7 @@
 # memory-bank 项目规范 v2.0（开源版草案）
 
+文档导航：[架构](ARCHITECTURE.md) · [CLI](CLI.md) · [配置](CONFIG.md) · [部署](DEPLOY.md) · [MCP](MCP.md)
+
 > 状态：草案，2026-11-23。基于 `DESIGN.md` v1.3 与后续讨论整理。
 > 本文是新仓库的唯一规范源；`DESIGN.md` 保留为 v1.3 的历史设计，不再改动。
 
