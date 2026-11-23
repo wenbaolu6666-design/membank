@@ -68,7 +68,9 @@ class InitIntegrationTest(unittest.TestCase):
                 "GIT_COMMITTER_EMAIL": "t@example.com",
             }
             with patch.dict(os.environ, env):
-                self.assertEqual(cli.cmd_init([str(root), "--agents", "codex", "--git"]), 0)
+                self.assertEqual(
+                    cli.cmd_init([str(root), "--agents", "codex", "--mode", "local"]), 0
+                )
             self.assertTrue((root / ".git").is_dir())
             log = subprocess.run(
                 ["git", "-C", str(root), "log", "--oneline"],

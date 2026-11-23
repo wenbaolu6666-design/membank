@@ -225,9 +225,8 @@ def cmd_init(argv):
     parser.add_argument("--remote", default="")
     parser.add_argument("--push", action="store_true")
     parser.add_argument("--model", default="BAAI/bge-small-zh-v1.5")
-    parser.add_argument("--git", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
-    mode = "local" if args.git else args.mode
+    mode = args.mode
     if args.remote and mode == "local":
         mode = "cloud"
     if mode == "cloud" and not args.remote:

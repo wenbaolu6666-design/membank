@@ -55,7 +55,7 @@ python -m membank index
 
 默认是 `local`。如果本机没有 Git 身份，`init` 会给当前仓库写入默认身份
 `membank <membank@localhost>`，不修改全局配置；之后可以按需改成自己的身份。
-Git 是必需项，不提供无 Git 模式。
+Git 是必需项。
 
 本地模式不提供异地备份；磁盘损坏会同时丢失库和 `.git`，需要时用
 `git bundle create memory-bank.bundle --all` 复制到其他介质。

@@ -38,7 +38,7 @@ auto_push = false  # 是否保留给外部脚本自动推送
 | `local` | 只建本地 Git，不连远程；默认 |
 | `cloud` | 本地 Git + 远程仓库 |
 
-Git 是必需项，没有"不用 Git"模式。索引只读 HEAD，所以**没 commit 的笔记检索不到**。
+Git 是必需项。索引只读 HEAD，所以**没 commit 的笔记检索不到**。
 
 ## `[mcp]` MCP 服务
 
