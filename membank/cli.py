@@ -13,6 +13,19 @@ from .gitenv import clean_env
 from .i18n import detect_lang, set_lang, t
 from .templates import AGENTS_MD, PROFILE_MD
 
+
+def _configure_stdio():
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            try:
+                stream.reconfigure(encoding="utf-8", errors="replace")
+            except Exception:
+                pass
+
+
+_configure_stdio()
+
+
 USAGE = """membank <command>
 
   init <dir> [--agents a,b]   初始化一个记忆库
@@ -537,12 +550,7 @@ COMMANDS = {
 
 
 def main(argv=None):
-    for stream in (sys.stdout, sys.stderr):
-        if hasattr(stream, "reconfigure"):
-            try:
-                stream.reconfigure(encoding="utf-8", errors="replace")
-            except Exception:
-                pass
+    _configure_stdio()
     set_lang(detect_lang())
     args = list(sys.argv[1:] if argv is None else argv)
     if not args or args[0] in ("-h", "--help", "help"):
