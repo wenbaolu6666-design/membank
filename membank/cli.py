@@ -153,9 +153,7 @@ def cmd_status(argv):
     print(f"{t('status.model'):<6}: {config.model}")
     print(f"{t('status.agents'):<6}: {', '.join(config.agents)}")
     remote = git_remote(config.vault) or config.git_remote
-    if config.git_mode == "none":
-        vcs = t("status.vcs_none")
-    elif config.git_mode == "cloud":
+    if config.git_mode == "cloud":
         vcs = t("status.vcs_remote", remote=remote or t("status.no_remote"))
     else:
         vcs = t("status.vcs_local")
@@ -196,10 +194,8 @@ def cmd_doctor(argv):
         ("vault", config.vault.is_dir(), str(config.vault)),
         (
             "git",
-            (not config.git_enabled) or bool(git_head(config.vault)),
-            t("status.vcs_none")
-            if not config.git_enabled
-            else (t("doctor.head_ok") if git_head(config.vault) else t("doctor.head_bad")),
+            bool(git_head(config.vault)),
+            t("doctor.head_ok") if git_head(config.vault) else t("doctor.head_bad"),
         ),
     ]
     for module in ("yaml", "sklearn", "fastembed"):
@@ -221,7 +217,7 @@ def cmd_init(argv):
     parser.add_argument("target")
     parser.add_argument("--agents", default=None)
     parser.add_argument("--state-dir", default=DEFAULT_STATE_DIR)
-    parser.add_argument("--mode", choices=("none", "local", "cloud"), default="local")
+    parser.add_argument("--mode", choices=("local", "cloud"), default="local")
     parser.add_argument("--remote", default="")
     parser.add_argument("--push", action="store_true")
     parser.add_argument("--git", action="store_true", help=argparse.SUPPRESS)
@@ -280,43 +276,39 @@ def cmd_init(argv):
         else t("init.agents", agents=t("init.no_agents"))
     )
     print(t("init.state", path=state_path))
-    if mode != "none":
-        if _init_local_git(target) != 0:
-            return 1
-        if mode == "cloud" and args.remote:
-            env = clean_env()
-            subprocess.run(
-                ["git", "-C", str(target), "remote", "add", "origin", args.remote],
+    if _init_local_git(target) != 0:
+        return 1
+    if mode == "cloud" and args.remote:
+        env = clean_env()
+        subprocess.run(
+            ["git", "-C", str(target), "remote", "add", "origin", args.remote],
+            capture_output=True,
+            check=False,
+            env=env,
+        )
+        subprocess.run(
+            ["git", "-C", str(target), "remote", "set-url", "origin", args.remote],
+            capture_output=True,
+            check=False,
+            env=env,
+        )
+        print(t("init.git_remote", remote=args.remote))
+        if args.push:
+            pushed = subprocess.run(
+                ["git", "-C", str(target), "push", "-u", "origin", "main"],
                 capture_output=True,
+                text=True,
                 check=False,
                 env=env,
             )
-            subprocess.run(
-                ["git", "-C", str(target), "remote", "set-url", "origin", args.remote],
-                capture_output=True,
-                check=False,
-                env=env,
-            )
-            print(t("init.git_remote", remote=args.remote))
-            if args.push:
-                pushed = subprocess.run(
-                    ["git", "-C", str(target), "push", "-u", "origin", "main"],
-                    capture_output=True,
-                    text=True,
-                    check=False,
-                    env=env,
-                )
-                if pushed.returncode != 0:
-                    print(
-                        t(
-                            "init.git_push_failed",
-                            error=(pushed.stderr or pushed.stdout).strip(),
-                        )
+            if pushed.returncode != 0:
+                print(
+                    t(
+                        "init.git_push_failed",
+                        error=(pushed.stderr or pushed.stdout).strip(),
                     )
-        print(t("init.next_git"))
-    else:
-        print(t("status.vcs_none"))
-        print(t("init.next"))
+                )
+    print(t("init.next_git"))
     return 0
 
 

@@ -31,7 +31,6 @@ pip install .
 
 ```bash
 python -m membank init ~/memory-bank                 # 默认 local Git
-python -m membank init ~/memory-bank --mode none     # 不用 Git
 python -m membank init ~/memory-bank --mode cloud --remote <仓库地址> [--push]
 cd ~/memory-bank
 python -m membank index
@@ -46,13 +45,12 @@ python -m membank index
 
 | mode | 行为 |
 |---|---|
-| `none` | 不创建 Git；索引直接读工作区，保存后重新 `membank index` 即可检索 |
 | `local` | 只建本地 Git，无远程；索引读 HEAD，未提交笔记不可见 |
 | `cloud` | 本地 Git + remote；需 `--remote`，`--push` 首次推送 |
 
 默认是 `local`。如果本机没有 Git 身份，`init` 会给当前仓库写入默认身份
 `membank <membank@localhost>`，不修改全局配置；之后可以按需改成自己的身份。
-只想用纯 Markdown 时用 `--mode none`。
+Git 是必需项，不提供无 Git 模式。
 
 本地模式不提供异地备份；磁盘损坏会同时丢失库和 `.git`，需要时用
 `git bundle create memory-bank.bundle --all` 复制到其他介质。
@@ -71,7 +69,7 @@ chunk_chars = 900
 chunk_overlap = 120
 
 [git]
-mode = "local"     # none | local | cloud
+mode = "local"     # local | cloud
 remote = ""
 auto_push = false
 

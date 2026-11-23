@@ -96,28 +96,6 @@ def read_committed_sources():
     return sources
 
 
-def read_working_sources(vault=None):
-    root = os.path.abspath(vault or BANK)
-    sources = {}
-    for dirpath, dirnames, filenames in os.walk(root):
-        dirnames[:] = [
-            name
-            for name in dirnames
-            if name not in SKIP_DIRS and not name.startswith(".")
-        ]
-        for name in filenames:
-            if not name.lower().endswith(".md") or name in SKIP_FILES:
-                continue
-            path = os.path.join(dirpath, name)
-            rel = os.path.relpath(path, root).replace(os.sep, "/")
-            try:
-                with open(path, encoding="utf-8", errors="replace") as stream:
-                    sources[rel] = stream.read()
-            except OSError:
-                continue
-    return sources
-
-
 def parse_frontmatter(text):
     lines = text.splitlines()
     if not lines or lines[0].strip() != "---":
@@ -350,16 +328,11 @@ def main():
         print(t("index.missing_deps", error=exc))
         return 1
 
-    if CONFIG.git_enabled:
-        source_head = git("rev-parse", "HEAD").stdout.decode("ascii", "replace").strip()
-        if source_head:
-            sources = read_committed_sources()
-        else:
-            print(t("index.no_git"))
-            sources = read_working_sources()
-    else:
-        source_head = ""
-        sources = read_working_sources()
+    source_head = git("rev-parse", "HEAD").stdout.decode("ascii", "replace").strip()
+    if not source_head:
+        print(t("index.git_required"))
+        return 1
+    sources = read_committed_sources()
     files = read_source_files(sources)
     layers = read_project_layers(sources)
     if not files:

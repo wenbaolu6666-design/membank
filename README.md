@@ -1,6 +1,6 @@
 # memory-bank
 
-Markdown/Obsidian 总库是权威源：**一处集中存放**——全局 / 按本地路径分层的项目 / 子文件夹记忆全部收在同一个总库下，绝不在被记录项目自身的目录里落记忆文件；每一级内再分**共享层与智能体私有层**（各智能体默认隔离，相同事实经 mirrors 双向连接）。Git 可选；本机 SQLite 只保存当前索引源（Git HEAD 或工作区）的检索副本，可从 Markdown 重建。
+Markdown/Obsidian 总库是权威源：**一处集中存放**——全局 / 按本地路径分层的项目 / 子文件夹记忆全部收在同一个总库下，绝不在被记录项目自身的目录里落记忆文件；每一级内再分**共享层与智能体私有层**（各智能体默认隔离，相同事实经 mirrors 双向连接）。Git 保存 Markdown；本机 SQLite 只保存 Git HEAD 的检索副本，可从 Markdown 重建。
 
 为多个 AI 编码智能体（Codex、Claude Code、Cursor、Antigravity 等）与人的协同工作流设计。
 

@@ -87,16 +87,6 @@ class InitIntegrationTest(unittest.TestCase):
             )
             self.assertEqual(remote.stdout.strip(), "")
 
-    def test_init_no_git(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp) / "vault"
-            self.assertEqual(
-                cli.cmd_init([str(root), "--agents", "codex", "--mode", "none"]), 0
-            )
-            self.assertFalse((root / ".git").exists())
-            config_text = (root / "memory-bank.toml").read_text(encoding="utf-8")
-            self.assertIn('mode = "none"', config_text)
-
     def test_init_cloud_sets_remote(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp) / "vault"

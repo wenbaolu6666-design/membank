@@ -130,9 +130,9 @@ def load_config(vault=None, start=None):
     if env_git:
         value = env_git.strip().lower()
         mode = {"0": "none", "false": "none", "no": "none", "off": "none"}.get(value, value)
-    if mode not in {"none", "local", "cloud"}:
+    if mode not in {"local", "cloud"}:
         mode = "local"
-    git_enabled = mode != "none"
+    git_enabled = True
     return Config(
         vault=root,
         state_dir=state_dir,

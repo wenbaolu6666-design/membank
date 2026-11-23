@@ -25,6 +25,11 @@ grant_minutes = 30
 [mcp]
 agent = ""
 
+[git]
+mode = "local"   # local | cloud
+remote = ""
+auto_push = false
+
 [ai]
 backend = "agent"
 base_url = "http://127.0.0.1:11434/v1"

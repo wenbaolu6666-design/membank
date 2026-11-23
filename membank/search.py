@@ -228,7 +228,7 @@ def main(argv=None):
             commit=meta["source_commit"][:10],
         )
     )
-    if CONFIG.git_enabled and current_head and current_head != meta.get("source_commit"):
+    if current_head and current_head != meta.get("source_commit"):
         print(t("search.behind"))
     for score, semantic_score, keyword_score, row, chunk_index in results[: args.top]:
         print(
