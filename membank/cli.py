@@ -98,7 +98,7 @@ def _init_local_git(target):
     output = (commit.stderr or "") + (commit.stdout or "")
     if commit.returncode != 0 and "nothing to commit" not in output:
         print(t("init.git_failed", error=output.strip()))
-        return 1
+        return 0
     print(t("init.git_done"))
     return 0
 
