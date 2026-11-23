@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "memory note frontmatter",
+  "description": "memory-bank 记忆条目的 YAML frontmatter 校验规则",
+  "type": "object",
+  "required": ["title", "scope", "type", "status"],
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 4,
+      "description": "一句话事实，写结论不写过程"
+    },
+    "scope": {
+      "type": "string",
+      "enum": ["global", "project", "sub"],
+      "description": "冗余自所在库与所在路径层（global=全局库，project=项目级 .memory/，sub=子文件夹级 .memory/），用于审计错层"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["preference", "decision", "constraint", "lesson", "reference", "plan", "context"],
+      "description": "驱动 type→scope 路由表与生命周期"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "temporary", "superseded", "archived"]
+    },
+    "validFrom": {
+      "type": "string",
+      "format": "date"
+    },
+    "validUntil": {
+      "type": ["string", "null"],
+      "format": "date",
+      "description": "null=长期有效；到期后由整合例行归档"
+    },
+    "supersededBy": {
+      "type": ["string", "null"],
+      "description": "被哪一则替代（填文件名），本则为被替代方"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["high", "medium", "low"]
+    },
+    "source": {
+      "type": "string",
+      "description": "commit:<sha> | file:<path> | conversation:<id> | url:<...>"
+    },
+    "project": {
+      "type": ["string", "null"],
+      "description": "本地路径 slug（由绝对路径派生）；本层记忆填本层 slug，全局记忆标注来源路径层"
+    },
+    "agent": {
+      "type": "string",
+      "description": "归属智能体 slug（zcode|codex|doubao|antigravity|...）；缺省即共享层，任何智能体可见；各智能体私有层默认互不可见"
+    },
+    "mirrors": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "同 vault 内其他层中记录同一事实的笔记路径（相对 vault 根），双向登记；引用只带路径，不内联对方内容"
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": true
+}

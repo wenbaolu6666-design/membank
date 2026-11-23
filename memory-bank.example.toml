@@ -1,0 +1,33 @@
+vault = "~/memory-bank"
+state_dir = ".membank"
+db = ".membank/index.sqlite"
+model = "BAAI/bge-small-zh-v1.5"
+agents = ["codex", "claude", "cursor"]
+chunk_chars = 900
+chunk_overlap = 120
+
+[i18n]
+lang = "zh"
+
+[conflicts]
+similarity = 0.92
+title_similarity = 0.85
+
+[signals]
+bands = 4
+rows = 4
+bruteforce_limit = 300
+max_bucket = 800
+
+[security]
+grant_minutes = 30
+
+[mcp]
+agent = ""
+
+[ai]
+backend = "agent"
+base_url = "http://127.0.0.1:11434/v1"
+model = ""
+api_key_env = "MEMBANK_AI_KEY"
+allow_external = false
