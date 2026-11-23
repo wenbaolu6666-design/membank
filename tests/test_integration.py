@@ -221,6 +221,8 @@ class McpHandshakeTest(unittest.TestCase):
                 [sys.executable, "-m", "membank", "mcp"],
                 input=payload,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 capture_output=True,
                 cwd=ROOT,
                 env=env,
