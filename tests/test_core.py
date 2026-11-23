@@ -32,7 +32,7 @@ class VaultDiscoveryTest(unittest.TestCase):
             (root / "AGENTS.md").write_text("x", encoding="utf-8")
             nested = root / "projects" / "demo" / "notes"
             nested.mkdir(parents=True)
-            self.assertEqual(cfg.find_vault(nested), root)
+            self.assertEqual(cfg.find_vault(nested), root.resolve())
 
     def test_missing_vault_returns_none(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -166,9 +166,10 @@ class ConfigTest(unittest.TestCase):
             (root / "AGENTS.md").write_text("x", encoding="utf-8")
             (root / "memory-bank.toml").write_text('state_dir = ".state"\n', encoding="utf-8")
             config = cfg.load_config(vault=root)
-            self.assertEqual(config.state_dir, root / ".state")
-            self.assertEqual(config.db.parent, root / ".state")
-            self.assertEqual(config.proposals.parent, root / ".state")
+            expected = (root / ".state").resolve()
+            self.assertEqual(config.state_dir, expected)
+            self.assertEqual(config.db.parent, expected)
+            self.assertEqual(config.proposals.parent, expected)
 
 
 class VersionTest(unittest.TestCase):
