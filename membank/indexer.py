@@ -14,14 +14,16 @@ from pathlib import PurePosixPath
 from .config import load_config
 from .i18n import t
 
-CONFIG = load_config()
-BANK = str(CONFIG.vault)
-DB_PATH = str(CONFIG.db)
-LEGACY_JSON_PATH = str(CONFIG.legacy_json)
+try:
+    CONFIG = load_config()
+except SystemExit:
+    CONFIG = None
+BANK = str(CONFIG.vault) if CONFIG else ""
+DB_PATH = str(CONFIG.db) if CONFIG else ""
+LEGACY_JSON_PATH = str(CONFIG.legacy_json) if CONFIG else ""
 SKIP_DIRS = {
     ".git",
     ".obsidian",
-    CONFIG.state_dir.name,
     "archive",
     "conversations",
     "tools",
@@ -30,10 +32,12 @@ SKIP_DIRS = {
     "tests",
     "examples",
 }
+if CONFIG:
+    SKIP_DIRS.add(CONFIG.state_dir.name)
 SKIP_FILES = {"index.md", ".gitkeep"}
-AGENTS = set(CONFIG.agents)
-CHUNK_CHARS = CONFIG.chunk_chars
-CHUNK_OVERLAP = CONFIG.chunk_overlap
+AGENTS = set(CONFIG.agents) if CONFIG else set()
+CHUNK_CHARS = CONFIG.chunk_chars if CONFIG else 900
+CHUNK_OVERLAP = CONFIG.chunk_overlap if CONFIG else 120
 DB_SCHEMA_VERSION = "2"
 VALID_SCOPES = {"global", "project", "sub"}
 VALID_STATUSES = {"active", "temporary", "superseded", "archived"}
@@ -278,7 +282,7 @@ def read_previous_index():
 
 
 def choose_model(previous_meta):
-    if not CONFIG.model:
+    if CONFIG is None or not CONFIG.model:
         raise RuntimeError(t("index.no_model"))
     return CONFIG.model
 
@@ -305,6 +309,16 @@ def write_json_atomic(payload):
 
 
 def main():
+    global CONFIG, BANK, DB_PATH, LEGACY_JSON_PATH, AGENTS, CHUNK_CHARS, CHUNK_OVERLAP
+    if CONFIG is None:
+        CONFIG = load_config()
+        BANK = str(CONFIG.vault)
+        DB_PATH = str(CONFIG.db)
+        LEGACY_JSON_PATH = str(CONFIG.legacy_json)
+        AGENTS = set(CONFIG.agents)
+        CHUNK_CHARS = CONFIG.chunk_chars
+        CHUNK_OVERLAP = CONFIG.chunk_overlap
+        SKIP_DIRS.add(CONFIG.state_dir.name)
     try:
         import yaml  # noqa: F401
         from fastembed import TextEmbedding

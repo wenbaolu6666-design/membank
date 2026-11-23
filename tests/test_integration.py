@@ -114,7 +114,7 @@ class AddNoteTest(unittest.TestCase):
             target = notes.add_note(
                 config, "已确认", "内容", scope="global", confirmed=True
             )
-            self.assertEqual(target.parent, root / "notes" / "codex")
+            self.assertEqual(target.parent.resolve(), (root / "notes" / "codex").resolve())
             text = target.read_text(encoding="utf-8")
             self.assertIn("status: active", text)
             self.assertIn("agent: codex", text)
@@ -134,7 +134,8 @@ class AddNoteTest(unittest.TestCase):
                 config, "项目笔记", "内容", scope="project", project="demo", confirmed=True
             )
             self.assertEqual(
-                target.parent, root / "projects" / "demo" / "notes" / "codex"
+                target.parent.resolve(),
+                (root / "projects" / "demo" / "notes" / "codex").resolve(),
             )
 
 
