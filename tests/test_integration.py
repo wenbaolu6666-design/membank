@@ -44,20 +44,13 @@ class InitIntegrationTest(unittest.TestCase):
             root = Path(tmp) / "vault"
             self.assertEqual(
                 cli.cmd_init(
-                    [
-                        str(root),
-                        "--agents",
-                        "codex,claude",
-                        "--state-dir",
-                        ".state",
-                        "--mode",
-                        "none",
-                    ]
+                    [str(root), "--agents", "codex,claude", "--state-dir", ".state"]
                 ),
                 0,
             )
             self.assertTrue((root / "AGENTS.md").is_file())
             self.assertTrue((root / ".state").is_dir())
+            self.assertTrue((root / ".git").is_dir())
             config_text = (root / "memory-bank.toml").read_text(encoding="utf-8")
             self.assertIn("codex", config_text)
             self.assertIn("claude", config_text)

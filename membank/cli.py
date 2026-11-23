@@ -88,6 +88,27 @@ def _init_local_git(target):
     subprocess.run(
         ["git", "-C", str(target), "add", "-A"], capture_output=True, check=False, env=env
     )
+    identity = False
+    if not subprocess.run(
+        ["git", "-C", str(target), "config", "user.name"],
+        capture_output=True, text=True, env=env, check=False,
+    ).stdout.strip():
+        subprocess.run(
+            ["git", "-C", str(target), "config", "user.name", "membank"],
+            capture_output=True, check=False, env=env,
+        )
+        identity = True
+    if not subprocess.run(
+        ["git", "-C", str(target), "config", "user.email"],
+        capture_output=True, text=True, env=env, check=False,
+    ).stdout.strip():
+        subprocess.run(
+            ["git", "-C", str(target), "config", "user.email", "membank@localhost"],
+            capture_output=True, check=False, env=env,
+        )
+        identity = True
+    if identity:
+        print(t("init.git_identity_default"))
     commit = subprocess.run(
         ["git", "-C", str(target), "commit", "-m", "init memory bank"],
         capture_output=True,

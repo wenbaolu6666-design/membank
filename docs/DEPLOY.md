@@ -50,8 +50,9 @@ python -m membank index
 | `local` | 只建本地 Git，无远程；索引读 HEAD，未提交笔记不可见 |
 | `cloud` | 本地 Git + remote；需 `--remote`，`--push` 首次推送 |
 
-`local` / `cloud` 需要本机已配置 Git 的 `user.name` 与 `user.email`；没有配置时
-`init` 会明确失败，不会静默降级。只想用纯 Markdown 时用 `--mode none`。
+默认是 `local`。如果本机没有 Git 身份，`init` 会给当前仓库写入默认身份
+`membank <membank@localhost>`，不修改全局配置；之后可以按需改成自己的身份。
+只想用纯 Markdown 时用 `--mode none`。
 
 本地模式不提供异地备份；磁盘损坏会同时丢失库和 `.git`，需要时用
 `git bundle create memory-bank.bundle --all` 复制到其他介质。
